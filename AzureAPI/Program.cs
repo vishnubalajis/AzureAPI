@@ -1,4 +1,10 @@
 
+using AzureAPI.Application.Services;
+using AzureAPI.Infrastructure.Data;
+using AzureAPI.Infrastructure.Repositories;
+using AzureAPI.Repository;
+using Microsoft.EntityFrameworkCore;
+
 namespace AzureAPI
 {
     public class Program
@@ -12,6 +18,14 @@ namespace AzureAPI
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
+
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+            });
+
+            builder.Services.AddScoped<IEmployeeRepository,EmployeeRepository>();
+            builder.Services.AddScoped<EmployeeService>();
 
             var app = builder.Build();
 
