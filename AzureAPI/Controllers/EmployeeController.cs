@@ -19,6 +19,7 @@ namespace AzureAPI.Controllers
         public async Task<ActionResult<Employee>> Get()
         {
             var employees = await employeeService.GetEmployeesAsync();
+            throw new Exception("Failed");
             return Ok(employees);
         }
     }
