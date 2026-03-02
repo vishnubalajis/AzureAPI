@@ -1,5 +1,7 @@
 
 using AzureAPI.Application.Services;
+using AzureAPI.CustomMiddleware;
+using AzureAPI.Filters;
 using AzureAPI.Infrastructure.Data;
 using AzureAPI.Infrastructure.Repositories;
 using AzureAPI.Repository;
@@ -24,9 +26,15 @@ namespace AzureAPI
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
 
+            // add custom exception filter in global level
+            builder.Services.AddControllers(options =>
+            {
+                options.Filters.Add<CustomExceptionFilter>();
+            });
+
             builder.Services.AddScoped<IEmployeeRepository,EmployeeRepository>();
             builder.Services.AddScoped<EmployeeService>();
-
+            builder.Services.AddScoped<CustomExceptionFilter>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -38,7 +46,9 @@ namespace AzureAPI
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
+            
+            app.UseMiddleware<RequestLoggingMiddleware>();
+            app.UseMiddleware<RequestGlobalException>();
 
             app.MapControllers();
 
