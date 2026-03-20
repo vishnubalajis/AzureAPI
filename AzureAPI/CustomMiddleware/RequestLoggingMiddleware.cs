@@ -14,7 +14,6 @@
             Console.WriteLine($"Incoming Request: {context.Request.Method} {context.Request.Path}");
             await _next(context);
             Console.WriteLine($"Response Status Code: {context.Response.StatusCode}");
-            throw new NotImplementedException();
         }
     }
 }

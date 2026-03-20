@@ -5,7 +5,10 @@ using AzureAPI.Filters;
 using AzureAPI.Infrastructure.Data;
 using AzureAPI.Infrastructure.Repositories;
 using AzureAPI.Repository;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace AzureAPI
 {
@@ -32,11 +35,50 @@ namespace AzureAPI
                 options.Filters.Add<CustomExceptionFilter>();
             });
 
+            builder.Services.AddScoped<ILoggerService, LoggerService>();
             builder.Services.AddScoped<IEmployeeRepository,EmployeeRepository>();
             builder.Services.AddScoped<EmployeeService>();
             builder.Services.AddScoped<CustomExceptionFilter>();
-            var app = builder.Build();
+            builder.Services.AddScoped<ITokenService, TokenService>();
+            //enable cors
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReact",policy =>
+                {
+                    policy.WithOrigins("http://localhost:5173")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();                    
+                });
+            });
 
+            // Jwt Configuration
+            var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
+            builder.Services
+                .AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                        ValidAudience = builder.Configuration["Jwt:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(key)
+                    };
+                });
+
+            var app = builder.Build();
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseCors("AllowReact");
+            
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -45,7 +87,6 @@ namespace AzureAPI
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
             
             app.UseMiddleware<RequestLoggingMiddleware>();
             app.UseMiddleware<RequestGlobalException>();
