@@ -17,7 +17,11 @@ namespace AzureAPI.Infrastructure.Repositories
             => await _context.Employees.ToListAsync();
 
         public async Task<Employee?> GetByIdAsync(int id)
-            => await _context.Employees.FindAsync(id);
+        {
+            IQueryable<Employee> emp = _context.Employees;
+            emp.Where(e => e.Id == id);
+            return await _context.Employees.FindAsync(id);
+        }
 
         public async Task AddAsync(Employee employee)
         {
