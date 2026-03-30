@@ -5,9 +5,14 @@ using AzureAPI.Filters;
 using AzureAPI.Infrastructure.Data;
 using AzureAPI.Infrastructure.Repositories;
 using AzureAPI.Repository;
+using log4net;
+using log4net.Config;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Reflection;
 using System.Text;
 
 namespace AzureAPI
@@ -40,6 +45,27 @@ namespace AzureAPI
             builder.Services.AddScoped<EmployeeService>();
             builder.Services.AddScoped<CustomExceptionFilter>();
             builder.Services.AddScoped<ITokenService, TokenService>();
+
+            // Add Policy
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Permission", policy =>
+                    policy.Requirements.Add(new PermissionRequirement()));
+            });
+
+            // Register handler
+            builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
+
+            builder.Services.AddControllers(options =>
+            {
+                options.Filters.Add(new AuthorizeFilter("Permission"));
+            });
+
+
+            // Add Log4net
+            var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
+            XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
+
             //enable cors
             builder.Services.AddCors(options =>
             {

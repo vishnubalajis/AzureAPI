@@ -14,7 +14,10 @@ namespace AzureAPI.Infrastructure.Repositories
         }
 
         public async Task<IEnumerable<Employee>> GetAllAsync()
-            => await _context.Employees.ToListAsync();
+        {
+            //await _context.Employees.Select(e => new {e.Name,CurrentDate = EF.Property<DateTime>(e,"CreatedDate")}).ToListAsync();
+            return await _context.Employees.AsNoTracking().ToListAsync();
+        }
 
         public async Task<Employee?> GetByIdAsync(int id)
         {
@@ -25,6 +28,7 @@ namespace AzureAPI.Infrastructure.Repositories
 
         public async Task AddAsync(Employee employee)
         {
+            _context.Entry(employee).Property("CreatedDate").CurrentValue = DateTime.Now;
             await _context.Employees.AddAsync(employee);
             await _context.SaveChangesAsync();
         }

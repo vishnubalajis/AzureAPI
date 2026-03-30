@@ -7,5 +7,7 @@
         public string? EmployeeEmail { get; set; }
         public string? EmployeeRole { get; set; }
 
+        public List<string> Permissions { get; set;  }
+
     }
 }

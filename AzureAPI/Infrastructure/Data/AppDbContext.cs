@@ -13,7 +13,16 @@ namespace AzureAPI.Infrastructure.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            // shadow property
+            modelBuilder
+                .Entity<Employee>()
+                .Property<DateTime>("CreatedDate")
+                .HasDefaultValueSql("GETDATE()");
+
+            modelBuilder.Entity<Employee>()
+                .Property(e => e.Name)
+                .HasMaxLength(50)
+                .IsRequired();
         }
     }
 }

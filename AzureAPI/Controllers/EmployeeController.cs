@@ -7,7 +7,7 @@ namespace AzureAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+//    [Authorize]
     public class EmployeeController : ControllerBase
     {
         private readonly EmployeeService employeeService;
@@ -17,7 +17,7 @@ namespace AzureAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<ActionResult<Employee>> Get()
         {
             var employees = await employeeService.GetEmployeesAsync();
@@ -25,18 +25,24 @@ namespace AzureAPI.Controllers
         }
 
         [HttpGet("{empId}")]
-        
+       // [Authorize(Policy ="AdminOnly")]
         public async Task<ActionResult<Employee>> GetEmployeeById(int empId)
         {
             var employee = await employeeService.GetEmployeeById(empId);
             return Ok(employee);
         }
-
-        [HttpPost]
+        
+        [HttpPost("create")]
         public async Task<IActionResult> InsertEmployee(Employee employee)
         {
             await employeeService.AddEmployeeAsync(employee);
             return NoContent();
+        }
+
+        [HttpDelete("delete")]
+        public IActionResult Delete()
+        {
+            return Ok("User Deleted");
         }
     }
 }

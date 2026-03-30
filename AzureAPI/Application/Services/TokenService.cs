@@ -15,12 +15,20 @@ namespace AzureAPI.Application.Services
         }
         public string CreateToken(UserClaimsDto userClaims)
         {
-            var claims = new Claim[]
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name,userClaims.EmployeeName ?? string.Empty),
                 new Claim(ClaimTypes.Role,userClaims.EmployeeRole ?? string.Empty),
                 new Claim(ClaimTypes.Email,userClaims.EmployeeEmail ?? string.Empty),
             };
+
+            if (userClaims.Permissions != null && userClaims.Permissions.Any())
+            {
+                foreach (var permission in userClaims.Permissions)
+                {
+                    claims.Add(new Claim("Permission", permission)); // claim type = "Permission"
+                }
+            }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
 
